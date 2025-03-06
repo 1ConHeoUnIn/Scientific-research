@@ -16,15 +16,16 @@ const int channelB = 1;   // PWM channel for Motor B
 // matrix
 const int n = 5;
 int dutycycle = 140;
+int max_speed = 200;
 
-// set position of the boat
-int centerRow = n / 2;
-int centerCol = n / 2;
+// set position of the boat is the center of the matrix
+int currentRow = n / 2;
+int currentCol = n / 2;
 
-// end position
-int x,y;
+// target position
+int x, y;
 
-void go_forward()
+void go_forward(int t) // t=s/v
 {
   printf("dutycycle: %d\n", dutycycle);
   Serial.println("Go Forward");
@@ -35,6 +36,8 @@ void go_forward()
   // Motor B Forward
   digitalWrite(IN3, HIGH);
   digitalWrite(IN4, LOW);
+
+  delay(t);
 }
 void stop()
 {
@@ -49,7 +52,7 @@ void stop()
   digitalWrite(IN4, LOW);
 }
 
-void go_back()
+void go_back(int t)
 {
   // Motor A back
   Serial.println("Go Back");
@@ -59,8 +62,9 @@ void go_back()
 
   digitalWrite(IN3, LOW);
   digitalWrite(IN4, HIGH);
+  delay(t);
 }
-void turn_left()
+void spin_left()
 {
   printf("dutycycle: %d\n", dutycycle);
   Serial.println("Go Forward");
@@ -71,9 +75,11 @@ void turn_left()
   // Motor B Stop
   digitalWrite(IN3, LOW);
   digitalWrite(IN4, LOW);
+
+  
 }
 
-void turn_right()
+void spin_right()
 {
   // Motor A Stop
   digitalWrite(IN1, LOW);
@@ -84,13 +90,25 @@ void turn_right()
 }
 void speed_control()
 {
-  for (dutycycle; dutycycle < 250; dutycycle++)
+
+  for (dutycycle; dutycycle < max_speed; dutycycle++)
   {
     printf("dutycycle: %d\n", dutycycle);
     ledcWrite(channelA, dutycycle);
     ledcWrite(channelB, dutycycle);
     delay(200);
   }
+}
+
+void lenght_index(int a, int b)
+{
+ Serial.print("lenght of indexis : ( , )");
+  if (Serial.available() > 0)
+  {
+    a = Serial.parseInt();
+    b = Serial.parseInt();
+}
+
 }
 
 void create_map()
@@ -104,7 +122,7 @@ void create_map()
       map[i][j] = 0;
     }
   }
-  map[centerRow][centerCol]= 'x';
+  map[currentRow][currentCol] = 'x';
   for (int i = 0; i < n; i++)
   {
     for (int j = 0; j < n; j++)
@@ -123,6 +141,33 @@ void create_map()
     Serial.println();
   }
 }
+
+void choose_target()
+{
+  Serial.print("choose target: ( , )");
+  if (Serial.available() > 0)
+  {
+    x = Serial.parseInt();
+    y = Serial.parseInt();
+    Serial.print("target was chosen is: (");
+    Serial.print(x);
+    Serial.print(",");
+    Serial.print(y);
+    Serial.println(")");
+  }
+}
+
+void update_position(int newRow, int newCol)
+{
+if (newRow >= 0 && newRow < n && newCol >= 0 && newCol < n)
+{
+  currentRow = newRow;
+  currentCol = newCol;
+  create_map();
+}
+}
+
+
 
 void setup()
 {
@@ -145,15 +190,9 @@ void setup()
   Serial.println("Motor test!");
 
   create_map();
-
 }
 
 void loop()
 {
-  Serial.print("")
-  if(Serial.available()>0)
-  {
-x=Serial.parseInt();
-y=Serial.parseInt();
-  }
+  choose_target();
 }
